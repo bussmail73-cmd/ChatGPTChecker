@@ -1,20 +1,21 @@
 {
-    "releaseUrl":  "https://github.com/bussmail73-cmd/ChatGPTChecker/releases/tag/v1.7.2",
-    "version":  "1.7.2",
+    "releaseUrl":  "https://github.com/bussmail73-cmd/ChatGPTChecker/releases/tag/v1.7.3",
+    "version":  "1.7.3",
     "assets":  {
                    "windows-x64":  {
-                                       "sizeBytes":  55943532,
-                                       "url":  "https://github.com/bussmail73-cmd/ChatGPTChecker/releases/download/v1.7.2/bundle.zip",
-                                       "sha256":  "7509b9d8c268eb69de1d5560f76b40d8f638f5aa5572fb9e8285c22a1ddf9613"
+                                       "sizeBytes":  55945787,
+                                       "url":  "https://github.com/bussmail73-cmd/ChatGPTChecker/releases/download/v1.7.3/bundle.zip",
+                                       "sha256":  "1b19d9fe57ae33792b2c52ba77f9f23d9e88e5a180406299b84585c372250706"
                                    }
                },
-    "publishedAt":  "2026-10-01T12:37:16Z",
+    "publishedAt":  "2026-10-01T15:13:20Z",
     "changelog":  [
+                      "v1.7.3: Overhauled Auto-Updater with animated status badges and full-screen installation overlay",
+                      "v1.7.3: Fixed process file-locking and self-restart sequence with embedded runtime engine",
+                      "v1.7.3: Added celebratory post-update verification banner and background update notifications",
                       "v1.7.2: Streamlined Settings card with English support text and no duplicate banner",
-                      "v1.7.2: Removed avatar logo from support card and kept clean layout across tabs",
                       "v1.7.1: UI styling updates with rounded corners and clean English interface",
-                      "v1.7.0: Pure bytecode protection (.pyc only) for all backend Python modules",
-                      "v1.7.0: Check Plan, Logout All sessions, and TOTP 2FA rotation engine",
+                      "v1.7.0: Real-time Account Plan Detection, Session Logout, and TOTP 2FA Secret Rotation",
                       "v1.6.0: 30-Day Audit Log Retention with real-time streaming",
                       "v1.5.0: Native Windows desktop app launcher with embedded runtime"
                   ],
