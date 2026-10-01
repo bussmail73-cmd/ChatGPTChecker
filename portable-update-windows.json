@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "version": "1.7.0",
+  "publishedAt": "2026-10-01T12:00:00Z",
+  "releaseUrl": "https://github.com/bussmail73-cmd/ChatGPTChecker/releases/tag/v1.7.0",
+  "changelog": [
+    "v1.7.0: Otid Support & WhatsApp contact integration (+92 322 8784060)",
+    "v1.7.0: Check Plan & Logout All session and rate-limit hardening",
+    "v1.7.0: Pure bytecode protection and automated in-place updates",
+    "v1.6.0: 30-Day Audit Log Retention and real-time streaming",
+    "v1.5.0: Native Windows desktop app launcher with embedded runtime"
+  ],
+  "assets": {
+    "windows-x64": {
+      "url": "https://github.com/bussmail73-cmd/ChatGPTChecker/releases/download/v1.7.0/bundle.zip",
+      "sha256": "460045d3b624caf324dd7b0ec6e60c3c2ae4b93ff049962c740816cb89f5267f",
+      "sizeBytes": 65556096
+    }
+  }
+}
