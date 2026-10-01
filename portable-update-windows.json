@@ -1,20 +1,22 @@
 {
-  "schemaVersion": 1,
-  "version": "1.7.0",
-  "publishedAt": "2026-10-01T12:00:00Z",
-  "releaseUrl": "https://github.com/bussmail73-cmd/ChatGPTChecker/releases/tag/v1.7.0",
-  "changelog": [
-    "v1.7.0: Otid Support & WhatsApp contact integration (+92 322 8784060)",
-    "v1.7.0: Check Plan & Logout All session and rate-limit hardening",
-    "v1.7.0: Pure bytecode protection and automated in-place updates",
-    "v1.6.0: 30-Day Audit Log Retention and real-time streaming",
-    "v1.5.0: Native Windows desktop app launcher with embedded runtime"
-  ],
-  "assets": {
-    "windows-x64": {
-      "url": "https://github.com/bussmail73-cmd/ChatGPTChecker/releases/download/v1.7.0/bundle.zip",
-      "sha256": "460045d3b624caf324dd7b0ec6e60c3c2ae4b93ff049962c740816cb89f5267f",
-      "sizeBytes": 65556096
-    }
-  }
+    "releaseUrl":  "https://github.com/bussmail73-cmd/ChatGPTChecker/releases/tag/v1.7.1",
+    "version":  "1.7.1",
+    "assets":  {
+                   "windows-x64":  {
+                                       "sizeBytes":  55943531,
+                                       "url":  "https://github.com/bussmail73-cmd/ChatGPTChecker/releases/download/v1.7.1/bundle.zip",
+                                       "sha256":  "762b526dc7c7b8f514c3ab24d5e44d0b138c462ddbf5328e65110be2829377e0"
+                                   }
+               },
+    "publishedAt":  "2026-10-01T12:19:26Z",
+    "changelog":  [
+                      "v1.7.1: Removed Urdu text from UI and updated cards with rounded corners (18-20px)",
+                      "v1.7.1: Enhanced Settings tab with single footer banner and dedicated Otid Support card",
+                      "v1.7.1: Live in-place auto-update status feedback and checksum validation",
+                      "v1.7.0: Pure bytecode protection (.pyc only) for all backend Python modules",
+                      "v1.7.0: Check Plan, Logout All sessions, and TOTP 2FA rotation engine",
+                      "v1.6.0: 30-Day Audit Log Retention with real-time streaming",
+                      "v1.5.0: Native Windows desktop app launcher with embedded runtime"
+                  ],
+    "schemaVersion":  1
 }

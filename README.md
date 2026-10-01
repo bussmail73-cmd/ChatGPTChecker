@@ -22,40 +22,41 @@ A high-performance, standalone Windows desktop application designed for bulk man
 
 ---
 
-## 📥 Quick Start & Installation
+## 📥 Installation & Setup Methods
 
-### 1. Download Setup
-Download the latest installer from the **[Releases](https://github.com/bussmail73-cmd/ChatGPTChecker/releases/latest)** page:
-* **`Setup.exe`** (Single installer, portable & complete)
+All dependencies and runtimes are pre-packaged. **No Node.js or Python installation is required.** Choose either method below:
 
-### 2. Zero Technical Requirements
-* **No Node.js installation needed!**
-* **No Python installation needed!**
-* All runtimes, libraries, and dependencies are 100% pre-bundled inside the installer.
+### Method 1: Automatic 1-Click Setup (`Setup.exe`) — Recommended
+1. Download **`Setup.exe`** from the **[Latest Release](https://github.com/bussmail73-cmd/ChatGPTChecker/releases/latest)**.
+2. Run `Setup.exe`.
+3. The wizard installs the application to your local user directory and creates a **Desktop Shortcut**.
+4. Launch **ChatGPT Checker** from your desktop or Start Menu.
 
-### 3. Run & Enjoy
-1. Double-click `Setup.exe`.
-2. Follow the 5-second setup wizard (creates a Desktop shortcut).
-3. Open **ChatGPT Checker** from your desktop and start managing accounts!
+### Method 2: Manual / Portable Setup (`bundle.zip`)
+1. Download **`bundle.zip`** from the **[Latest Release](https://github.com/bussmail73-cmd/ChatGPTChecker/releases/latest)**.
+2. Extract `bundle.zip` into any folder of your choice (e.g. `C:\ChatGPTChecker` or a USB drive).
+3. Start the application:
+   - Double-click **`Launch-App.vbs`** to run silently in the background and open your default browser.
+   - Alternatively, double-click **`Start-App.bat`** to run with a visible console window.
+4. To stop the application, run **`Stop-App.bat`**.
 
 ---
 
 ## 🔄 Live Automatic In-App Updates
 
-ChatGPT Checker comes with built-in **1-Click Live Updating**:
-* When a new update is released, a notification badge appears in the top-right corner: `🔔 New update available!`.
-* Click **Update Now**, and the application automatically downloads the patch, verifies its checksum, and updates itself in 5 seconds.
-* Your credentials, logs, and settings remain 100% safe and intact.
+ChatGPT Checker includes an integrated **1-Click Live Update System**:
+* When a newer version is released on GitHub, a notification badge lights up in the application header: `🔔 New update available!`.
+* Click **Update Now** inside the app — it automatically downloads the release archive, verifies the SHA-256 integrity, replaces program files, and restarts smoothly without losing your settings or audit logs.
+* You can also manually check for updates at any time by navigating to **Settings ⚙️** and clicking **Check Update**.
 
 ---
 
 ## 📞 Buy ChatGPT Accounts & Official Support
 
-Looking to buy fresh bulk ChatGPT accounts at the best reselling rates, or need assistance?
+Looking to buy bulk ChatGPT accounts, subscription licenses, or need technical assistance?
 
 * **Brand / Support:** **Otid**
 * **Telegram:** [@VoriFY_Support](https://t.me/VoriFY_Support)
-* **WhatsApp:** [+92 322 8784060](https://wa.me/923228784060)
 
 ---
 
