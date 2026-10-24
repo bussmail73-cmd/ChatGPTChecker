@@ -1,5 +1,5 @@
 {
   "proxies": "",
-  "updateUrl": "",
+  "updateUrl": "http://52.62.228.142:8099/portable-update-windows.json",
   "disableLogs": false
 }
