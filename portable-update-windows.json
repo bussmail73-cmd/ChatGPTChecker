@@ -1,23 +1,38 @@
 {
-    "releaseUrl":  "https://github.com/bussmail73-cmd/ChatGPTChecker/releases/tag/v1.7.3",
-    "version":  "1.7.3",
-    "assets":  {
-                   "windows-x64":  {
-                                       "sizeBytes":  55945787,
-                                       "url":  "https://github.com/bussmail73-cmd/ChatGPTChecker/releases/download/v1.7.3/bundle.zip",
-                                       "sha256":  "1b19d9fe57ae33792b2c52ba77f9f23d9e88e5a180406299b84585c372250706"
-                                   }
-               },
-    "publishedAt":  "2026-10-01T15:13:20Z",
-    "changelog":  [
-                      "v1.7.3: Overhauled Auto-Updater with animated status badges and full-screen installation overlay",
-                      "v1.7.3: Fixed process file-locking and self-restart sequence with embedded runtime engine",
-                      "v1.7.3: Added celebratory post-update verification banner and background update notifications",
-                      "v1.7.2: Streamlined Settings card with English support text and no duplicate banner",
-                      "v1.7.1: UI styling updates with rounded corners and clean English interface",
-                      "v1.7.0: Real-time Account Plan Detection, Session Logout, and TOTP 2FA Secret Rotation",
-                      "v1.6.0: 30-Day Audit Log Retention with real-time streaming",
-                      "v1.5.0: Native Windows desktop app launcher with embedded runtime"
-                  ],
-    "schemaVersion":  1
+  "releaseUrl": "https://github.com/bussmail73-cmd/ChatGPTChecker/releases/tag/v1.7.4",
+  "version": "1.7.4",
+  "assets": {
+    "windows-x64": {
+      "sizeBytes": 57469247,
+      "url": "https://github.com/bussmail73-cmd/ChatGPTChecker/releases/download/v1.7.4/bundle.zip",
+      "sha256": "d99682b7c6264e168f0b56bdd4cd3850f499240728593d9258ca2b15e973f678"
+    }
+  },
+  "publishedAt": "2026-10-24T12:55:00Z",
+  "changelog": [
+    "v1.7.4: Added Connected Devices tracking with live online session badges and client IP address detection",
+    "v1.7.4: Added Account Issue Date and Last Login timestamp logging in Admin license management",
+    "v1.7.4: Added Centralized Operator Telemetry: live success/failure counts and overall verification rate tracking",
+    "v1.7.4: Added Device Sessions Details modal with remote session termination / device disconnect switch",
+    "v1.7.4: Added scalable instant operator search and status filter supporting hundreds of simultaneous licenses",
+    "v1.7.4: Added Split-Screen Enterprise Authentication with remote operator license management and instant blocking",
+    "v1.7.4: Overhauled Get 2FA section with White Dashboard Theme and full-width bottom Key Vault",
+    "v1.7.4: Refactored Settings: Save Default Proxies button directly below proxies with red/green test feedback",
+    "v1.7.4: Removed GitHub links from Settings and added clean Software Version & Live Updates timeline",
+    "v1.7.4: Optimized live Audit Logs polling to completely eliminate DOM flicker / layout jitter",
+    "v1.7.4: Fixed Audit Logs and Settings tabs blank screen rendering issue",
+    "v1.7.4: Overhauled Update experience: direct Restart to Update button matching modern UI without popup modal",
+    "v1.7.4: Added custom Update Server & Sync URL in Settings tab with instant update checker",
+    "v1.7.4: Added Header Exit / Logout button with safe session termination",
+    "v1.7.4: Removed Verify Codex (5SIM) section and streamlined navigation tabs",
+    "v1.7.4: Preserved Check Phone / Codex verification tab for platform checks",
+    "v1.7.4: Redesigned header contact badge with clean theme-matching styling",
+    "v1.7.4: Switched Telegram support contact to official WhatsApp (+92 322 8784060) with direct chat link",
+    "v1.7.4: Added WhatsApp Support Number setting in Settings tab",
+    "v1.7.3: Overhauled Auto-Updater with animated status badges and full-screen installation overlay",
+    "v1.7.2: Streamlined Settings card with English support text and no duplicate banner",
+    "v1.7.1: UI styling updates with rounded corners and clean English interface",
+    "v1.7.0: Real-time Account Plan Detection, Session Logout, and TOTP 2FA Secret Rotation"
+  ],
+  "schemaVersion": 1
 }
