@@ -59,7 +59,7 @@ function batchRoute(handler, action) {
     try {
       const currentOperator = getUsernameFromReq(req) || 'admin';
       await handler(combos, async (result) => {
-        await logResult(action, result);
+        await logResult(action, result, currentOperator);
         recordUserTelemetry(currentOperator, Boolean(result.ok));
         if (!res.destroyed) res.write(JSON.stringify(result) + '\n');
       }, proxies);
@@ -168,6 +168,22 @@ app.get('/api/logs', async (req, res) => {
 });
 
 app.get('/api/logs/:name/content', async (req, res) => {
+  const username = getUsernameFromReq(req);
+  if (username) {
+    const users = await readUsers();
+    const u = users.find(x => x.username.toLowerCase() === username.toLowerCase());
+    if (u && u.accountType === 'shared' && u.role !== 'admin') {
+      return res.json({
+        sharedAccount: true,
+        message: 'Public / Shared Workstation Account — Local audit logs hidden for privacy.',
+        name: req.params.name,
+        entries: [],
+        total: 0,
+        content: ''
+      });
+    }
+  }
+
   const file = logPath(req.params.name);
   if (!file) {
     res.status(404).json({ error: 'not found' });
@@ -192,7 +208,14 @@ app.get('/api/logs/:name/content', async (req, res) => {
         } catch {}
         const action = parts[1].replace(/[\[\]]/g, '');
         const status = parts[2];
-        const rest = parts.slice(3).join('\t');
+        let operator = 'admin';
+        let rest = '';
+        if (parts.length >= 5 && parts[3].startsWith('[user:')) {
+          operator = parts[3].replace(/[\[\]]/g, '').replace(/^user:/, '');
+          rest = parts.slice(4).join('\t');
+        } else {
+          rest = parts.slice(3).join('\t');
+        }
         const restParts = rest.split(' | ');
         const account = restParts[0] || '';
         let details = restParts.slice(1).join(' | ');
@@ -207,6 +230,7 @@ app.get('/api/logs/:name/content', async (req, res) => {
           time: displayTime,
           fullTime: rawTime,
           action,
+          operator,
           status,
           account,
           details,
@@ -218,6 +242,7 @@ app.get('/api/logs/:name/content', async (req, res) => {
           time: '',
           fullTime: '',
           action: 'info',
+          operator: 'system',
           status: 'INFO',
           account: '',
           details: line,
@@ -234,6 +259,22 @@ app.get('/api/logs/:name/content', async (req, res) => {
 });
 
 app.get('/api/logs-range/:days', async (req, res) => {
+  const username = getUsernameFromReq(req);
+  if (username) {
+    const users = await readUsers();
+    const u = users.find(x => x.username.toLowerCase() === username.toLowerCase());
+    if (u && u.accountType === 'shared' && u.role !== 'admin') {
+      return res.json({
+        sharedAccount: true,
+        message: 'Public / Shared Workstation Account — Local audit logs hidden for privacy.',
+        days: req.params.days,
+        entries: [],
+        total: 0,
+        filesCount: 0
+      });
+    }
+  }
+
   const param = String(req.params.days || '').trim().toLowerCase();
   const isAll = param === 'all' || param === 'alltime' || param === '0';
   const days = isAll ? 'all' : (parseInt(param, 10) || 1);
@@ -273,7 +314,14 @@ app.get('/api/logs-range/:days', async (req, res) => {
           } catch {}
           const action = parts[1].replace(/[\[\]]/g, '');
           const status = parts[2];
-          const rest = parts.slice(3).join('\t');
+          let operator = 'admin';
+          let rest = '';
+          if (parts.length >= 5 && parts[3].startsWith('[user:')) {
+            operator = parts[3].replace(/[\[\]]/g, '').replace(/^user:/, '');
+            rest = parts.slice(4).join('\t');
+          } else {
+            rest = parts.slice(3).join('\t');
+          }
           const restParts = rest.split(' | ');
           const account = restParts[0] || rest;
           let details = restParts.slice(1).join(' | ');
@@ -289,6 +337,7 @@ app.get('/api/logs-range/:days', async (req, res) => {
             time: displayTime,
             fullTime: rawTime,
             action,
+            operator,
             status,
             account,
             details,
@@ -479,7 +528,19 @@ async function readUsers() {
   try {
     const raw = await fs.readFile(USERS_PATH, 'utf8');
     const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      let changed = false;
+      for (const u of parsed) {
+        if (!u.accountType) { u.accountType = 'personal'; changed = true; }
+        if (u.expiresAt === undefined) { u.expiresAt = null; changed = true; }
+        if (!u.durationLabel) { u.durationLabel = 'Unlimited Lifetime'; changed = true; }
+        if (u.maxDevices === undefined) { u.maxDevices = 0; changed = true; }
+      }
+      if (changed) {
+        await fs.writeFile(USERS_PATH, JSON.stringify(parsed, null, 2), 'utf8').catch(() => {});
+      }
+      return parsed;
+    }
   } catch {}
 
   const defaultUsers = [
@@ -488,6 +549,10 @@ async function readUsers() {
       password: 'admin786#password',
       role: 'admin',
       status: 'active',
+      accountType: 'personal',
+      expiresAt: null,
+      durationLabel: 'Unlimited Lifetime',
+      maxDevices: 0,
       createdAt: '2026-10-24T12:00:00.000Z',
       lastLogin: null
     },
@@ -496,6 +561,10 @@ async function readUsers() {
       password: 'operator123#2026',
       role: 'user',
       status: 'active',
+      accountType: 'personal',
+      expiresAt: null,
+      durationLabel: 'Unlimited Lifetime',
+      maxDevices: 5,
       createdAt: '2026-10-24T12:00:00.000Z',
       lastLogin: null
     }
@@ -523,7 +592,29 @@ app.post('/api/auth/login', async (req, res) => {
     return res.status(401).json({ ok: false, error: 'Invalid username or password. Check credentials and try again.' });
   }
   if (user.status === 'blocked') {
-    return res.status(403).json({ ok: false, error: 'This account has been blocked by the administrator. Contact WhatsApp support: +92 322 8784060' });
+    return res.status(403).json({ ok: false, error: 'This account has been blocked by the administrator. Contact WhatsApp (+92 322 8784060) or Telegram (@PKTAQ73).' });
+  }
+
+  // Check expiration date
+  if (user.expiresAt && Date.now() > new Date(user.expiresAt).getTime()) {
+    const expDate = new Date(user.expiresAt).toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' });
+    return res.status(403).json({
+      ok: false,
+      error: `Your operator license expired on ${expDate}. Contact Admin via WhatsApp (+92 322 8784060) or Telegram (@PKTAQ73) to renew.`
+    });
+  }
+
+  // Check active device limit
+  if (user.maxDevices && user.maxDevices > 0) {
+    const userSessions = Array.from(activeSessions.values()).filter(
+      s => s.username.toLowerCase() === user.username.toLowerCase()
+    );
+    if (userSessions.length >= user.maxDevices) {
+      return res.status(403).json({
+        ok: false,
+        error: `Active device limit reached (${userSessions.length}/${user.maxDevices} devices active). Please logout from other devices or ask Admin to increase your device quota.`
+      });
+    }
   }
 
   const clientIp = getClientIp(req);
@@ -539,6 +630,7 @@ app.post('/api/auth/login', async (req, res) => {
     token,
     username: user.username,
     role: user.role,
+    accountType: user.accountType || 'personal',
     ip: clientIp,
     device,
     loginTime: new Date().toISOString(),
@@ -549,7 +641,15 @@ app.post('/api/auth/login', async (req, res) => {
   res.json({
     ok: true,
     token,
-    user: { username: user.username, role: user.role, status: user.status }
+    user: {
+      username: user.username,
+      role: user.role,
+      status: user.status,
+      accountType: user.accountType || 'personal',
+      expiresAt: user.expiresAt || null,
+      durationLabel: user.durationLabel || 'Unlimited Lifetime',
+      maxDevices: user.maxDevices || 0
+    }
   });
 });
 
@@ -569,7 +669,18 @@ app.post('/api/auth/verify', async (req, res) => {
     activeSessions.delete(token);
     return res.status(403).json({ ok: false, error: 'Account has been blocked by administrator' });
   }
-  res.json({ ok: true, user: { username: user.username, role: user.role, status: user.status } });
+  res.json({
+    ok: true,
+    user: {
+      username: user.username,
+      role: user.role,
+      status: user.status,
+      accountType: user.accountType || 'personal',
+      expiresAt: user.expiresAt || null,
+      durationLabel: user.durationLabel || 'Unlimited Lifetime',
+      maxDevices: user.maxDevices || 0
+    }
+  });
 });
 
 app.post('/api/auth/logout', (req, res) => {
@@ -634,21 +745,79 @@ app.get('/api/auth/users', async (req, res) => {
 });
 
 app.post('/api/auth/users', async (req, res) => {
-  const { action, username, password, newPassword, role, status } = req.body || {};
+  const {
+    action,
+    username,
+    password,
+    newPassword,
+    role,
+    status,
+    accountType,
+    durationOption,
+    durationValue,
+    durationUnit,
+    maxDevices,
+    sessionToken
+  } = req.body || {};
   const users = await readUsers();
   const targetUser = users.find(u => u.username.toLowerCase() === String(username || '').trim().toLowerCase());
 
   if (action === 'add') {
     if (!username || !password) return res.status(400).json({ ok: false, error: 'Username and password required' });
     if (targetUser) return res.status(400).json({ ok: false, error: 'Username already exists' });
+
+    let expiresAt = null;
+    let durationLabel = 'Unlimited Lifetime';
+    if (durationOption === 'limited') {
+      const val = parseInt(durationValue, 10) || 1;
+      const unit = String(durationUnit || 'days').toLowerCase();
+      let ms = val * 24 * 60 * 60 * 1000;
+      if (unit === 'months') ms = val * 30 * 24 * 60 * 60 * 1000;
+      else if (unit === 'years') ms = val * 365 * 24 * 60 * 60 * 1000;
+      expiresAt = new Date(Date.now() + ms).toISOString();
+      durationLabel = `${val} ${unit}`;
+    }
+
     users.push({
       username: String(username).trim(),
       password: String(password).trim(),
       role: role === 'admin' ? 'admin' : 'user',
       status: 'active',
+      accountType: accountType === 'shared' ? 'shared' : 'personal',
+      expiresAt,
+      durationLabel,
+      maxDevices: parseInt(maxDevices, 10) || 0,
       createdAt: new Date().toISOString(),
       lastLogin: null
     });
+    await writeUsers(users);
+    return res.json({ ok: true, users });
+  }
+
+  if (action === 'edit') {
+    if (!targetUser) return res.status(404).json({ ok: false, error: 'User not found' });
+    if (newPassword && String(newPassword).trim()) targetUser.password = String(newPassword).trim();
+    if (role && (role === 'admin' || role === 'user')) {
+      if (targetUser.username.toLowerCase() !== 'admin') targetUser.role = role;
+    }
+    if (accountType && (accountType === 'personal' || accountType === 'shared')) {
+      targetUser.accountType = accountType;
+    }
+    if (maxDevices !== undefined) {
+      targetUser.maxDevices = parseInt(maxDevices, 10) || 0;
+    }
+    if (durationOption === 'unlimited') {
+      targetUser.expiresAt = null;
+      targetUser.durationLabel = 'Unlimited Lifetime';
+    } else if (durationOption === 'limited') {
+      const val = parseInt(durationValue, 10) || 1;
+      const unit = String(durationUnit || 'days').toLowerCase();
+      let ms = val * 24 * 60 * 60 * 1000;
+      if (unit === 'months') ms = val * 30 * 24 * 60 * 60 * 1000;
+      else if (unit === 'years') ms = val * 365 * 24 * 60 * 60 * 1000;
+      targetUser.expiresAt = new Date(Date.now() + ms).toISOString();
+      targetUser.durationLabel = `${val} ${unit}`;
+    }
     await writeUsers(users);
     return res.json({ ok: true, users });
   }
@@ -679,11 +848,22 @@ app.post('/api/auth/users', async (req, res) => {
   }
 
   if (action === 'kill_session') {
-    const { sessionToken } = req.body || {};
     if (sessionToken && activeSessions.has(sessionToken)) {
       activeSessions.delete(sessionToken);
     }
     return res.json({ ok: true });
+  }
+
+  if (action === 'kill_all_sessions') {
+    if (!targetUser) return res.status(404).json({ ok: false, error: 'User not found' });
+    let killed = 0;
+    for (const [tok, s] of activeSessions.entries()) {
+      if (s.username.toLowerCase() === targetUser.username.toLowerCase()) {
+        activeSessions.delete(tok);
+        killed++;
+      }
+    }
+    return res.json({ ok: true, killed });
   }
 
   if (action === 'delete') {
@@ -703,6 +883,135 @@ app.post('/api/auth/users', async (req, res) => {
   }
 
   res.status(400).json({ ok: false, error: 'Invalid action' });
+});
+
+// Centralized User Activity & History Route (Admin Only)
+app.get('/api/admin/activity', async (req, res) => {
+  const requestingUser = getUsernameFromReq(req);
+  const users = await readUsers();
+  const reqU = users.find(u => u.username.toLowerCase() === String(requestingUser || '').toLowerCase());
+  if (!reqU || reqU.role !== 'admin') {
+    return res.status(403).json({ ok: false, error: 'Admin access required' });
+  }
+
+  const userFilter = String(req.query.user || 'all').trim().toLowerCase();
+  const toolFilter = String(req.query.tool || 'all').trim().toLowerCase();
+  const statusFilter = String(req.query.status || 'all').trim().toUpperCase();
+  const rangeParam = String(req.query.range || 'today').trim().toLowerCase();
+
+  try {
+    const allFiles = await listLogs();
+    const now = Date.now();
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+    const targetFiles = allFiles.filter((f) => {
+      const match = f.name.match(/^(\d{4}-\d{2}-\d{2})\.txt$/);
+      if (!match) return false;
+      const fileDate = match[1];
+      if (rangeParam === 'today') return fileDate === todayStr;
+      if (rangeParam === 'yesterday') return fileDate === yesterday;
+      if (rangeParam === '30' || rangeParam === '30days') {
+        return (now - new Date(fileDate).getTime() <= 30 * 24 * 60 * 60 * 1000);
+      }
+      return true; // 'all'
+    });
+
+    const records = [];
+    const toolCounts = {
+      'change-2fa': { total: 0, ok: 0, fail: 0 },
+      'change-2fa-team': { total: 0, ok: 0, fail: 0 },
+      'check-plan': { total: 0, ok: 0, fail: 0 },
+      'check-phone': { total: 0, ok: 0, fail: 0 },
+      'get-token': { total: 0, ok: 0, fail: 0 },
+      'logout-all': { total: 0, ok: 0, fail: 0 },
+      'get-2fa': { total: 0, ok: 0, fail: 0 }
+    };
+    let totalAll = 0;
+    let okAll = 0;
+    let failAll = 0;
+
+    for (const f of targetFiles) {
+      const file = logPath(f.name);
+      if (!file) continue;
+      const raw = await fs.readFile(file, 'utf8').catch(() => '');
+      const lines = raw.split('\n');
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line || line.startsWith('---')) continue;
+        const parts = line.split('\t');
+        if (parts.length >= 4) {
+          const rawTime = parts[0];
+          const rawAction = parts[1].replace(/[\[\]]/g, '');
+          const status = parts[2];
+          let operator = 'admin';
+          let rest = '';
+          if (parts.length >= 5 && parts[3].startsWith('[user:')) {
+            operator = parts[3].replace(/[\[\]]/g, '').replace(/^user:/, '');
+            rest = parts.slice(4).join('\t');
+          } else {
+            rest = parts.slice(3).join('\t');
+          }
+
+          const restParts = rest.split(' | ');
+          const account = restParts[0] || '';
+          let details = restParts.slice(1).join(' | ');
+          details = details.replace(/combo_moi:\s*/g, 'New Combo: ')
+                           .replace(/combo_cu:\s*/g, 'Old Combo: ')
+                           .replace(/combo_du_phong:\s*/g, 'Backup: ')
+                           .replace(/ly do:\s*/g, 'Reason: ')
+                           .replace(/CHƯA XÁC NHẬN/g, 'Unconfirmed');
+
+          totalAll++;
+          if (status === 'OK') okAll++; else failAll++;
+          if (toolCounts[rawAction]) {
+            toolCounts[rawAction].total++;
+            if (status === 'OK') toolCounts[rawAction].ok++; else toolCounts[rawAction].fail++;
+          }
+
+          if (userFilter !== 'all' && operator.toLowerCase() !== userFilter) continue;
+          if (toolFilter !== 'all' && rawAction.toLowerCase() !== toolFilter) continue;
+          if (statusFilter !== 'ALL' && status !== statusFilter) continue;
+
+          let displayTime = rawTime;
+          try {
+            const d = new Date(rawTime);
+            if (!isNaN(d.getTime())) {
+              displayTime = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' (' + d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ')';
+            }
+          } catch {}
+
+          records.push({
+            id: `${f.name}-${i}`,
+            time: displayTime,
+            fullTime: rawTime,
+            action: rawAction,
+            operator,
+            status,
+            account,
+            details,
+            raw: line
+          });
+        }
+      }
+    }
+
+    records.sort((a, b) => b.fullTime.localeCompare(a.fullTime));
+
+    res.json({
+      ok: true,
+      stats: {
+        total: totalAll,
+        success: okAll,
+        failed: failAll,
+        rate: totalAll > 0 ? ((okAll / totalAll) * 100).toFixed(1) + '%' : '100%',
+        toolCounts
+      },
+      records: records.slice(0, 300)
+    });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
 });
 
 app.post('/api/shutdown', (req, res) => {
